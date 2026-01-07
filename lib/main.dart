@@ -53,7 +53,7 @@ class _MyHomePageState extends State<MyHomePage> {
         reconnectDelay: Duration(seconds: 0),
         onStompError: onStompErrorCallback,
         onDisconnect: onDisconnectCallback,
-        onWebSocketError: onWebSocketErrorCallback
+        onWebSocketError: onWebSocketErrorCallback,
       ),
     );
     stompClient!.activate();
@@ -90,24 +90,26 @@ class _MyHomePageState extends State<MyHomePage> {
   void onWebSocketErrorCallback(dynamic error) {
     print("_______ WebSocketErrorCallback caused by $error");
     setState(() {
-      receivedMessage = error.toString() ?? "Error when connecting to websocket";
+      receivedMessage =
+          error.toString() ?? "Error when connecting to websocket";
     });
   }
 
   void onConnectCallback(StompFrame frame) {
     print('_________Connected!');
     stompClient!.subscribe(
-      destination: '/topic/messages',
+      destination: '$SOCKET_RECEIVE_PREFIX$SOCKET_RECEIVE_MESSAGE_CHANNEL',
       callback: (frame) {
         setState(() {
           receivedMessage = frame.body ?? "Empty message";
         });
       },
     );
+
     // Send a test message once connected
     stompClient!.send(
-      destination: '/app/chat',
-      body: '{"user":"flutter","message":"Hello from Flutter!"}',
+      destination: '$SOCKET_SUBS_PREFIX$SOCKET_SUBS_CHAT_CHANNEL',
+      body: '{"user":"flutter client","message":"test message"}',
     );
   }
 
@@ -122,17 +124,20 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Column(
           mainAxisAlignment: .center,
           children: [
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
+            const Text('Message received from websocket'),
+            // Text(
+            //   '$_counter',
+            //   style: Theme.of(context).textTheme.headlineMedium,
+            // ),
 
             Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(receivedMessage),
+                  Text(
+                    receivedMessage,
+                    style: Theme.of(context).textTheme.headlineMedium,
+                  ),
                   SizedBox(height: 20),
                   ElevatedButton(
                     onPressed: _connectToWebSocket,
